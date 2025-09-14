@@ -7,6 +7,8 @@ import {
   checkClipboardPermissions,
 } from "../utils/clipboard";
 
+const API_ENDPOINT = import.meta.env.VITE_WS;
+
 export const useClipboard = (
   roomCode: string,
   setIsConnected: (connected: boolean) => void
@@ -20,7 +22,7 @@ export const useClipboard = (
   // WebSocket connection
   useEffect(() => {
     const connectWebSocket = () => {
-      const ws = new WebSocket(`ws://10.184.250.123:8080/ws?room=${roomCode}`);
+      const ws = new WebSocket(`${API_ENDPOINT}/ws?room=${roomCode}`);
       wsRef.current = ws;
 
       ws.onopen = () => {

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { HomePageProps } from "../types";
+import api from "@/lib/api";
 
 const HomePage = ({ onRoomJoin }: HomePageProps) => {
   const [joinRoomCode, setJoinRoomCode] = useState("");
@@ -11,19 +12,9 @@ const HomePage = ({ onRoomJoin }: HomePageProps) => {
     setError("");
 
     try {
-      const response = await fetch("http://10.184.250.123:8080/create-room", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await api.post("/create-room");
 
-      if (!response.ok) {
-        throw new Error("Failed to create room");
-      }
-
-      const data = await response.json();
-      onRoomJoin(data.room_code);
+      onRoomJoin(response.data.room_code);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create room");
     } finally {
