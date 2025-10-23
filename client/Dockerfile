@@ -1,25 +1,22 @@
 # Use the Node alpine official image
 # https://hub.docker.com/_/node
-FROM node:lts-alpine AS build
-
-# Set config
-ENV NPM_CONFIG_UPDATE_NOTIFIER=false
-ENV NPM_CONFIG_FUND=false
+FROM oven/bun:latest AS build
 
 # Create and change to the app directory.
 WORKDIR /app
 
-# Copy the files to the container image
+# Copy package files to the container image
+# Bun uses bun.lockb and package.json/package-lock.json; copying package*.json is safe
 COPY package*.json ./
 
-# Install packages
-RUN npm ci
+# Install dependencies using bun
+RUN bun install --frozen
 
 # Copy local code to the container image.
 COPY . ./
 
-# Build the app.
-RUN npm run build
+# Build the app using bun
+RUN bun run build
 
 # Use the Caddy image
 FROM caddy
