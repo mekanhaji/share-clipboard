@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"math/rand"
 	"net/http"
 	"sync"
@@ -102,12 +101,12 @@ func createRoom(w http.ResponseWriter, r *http.Request) {
 
 	// Send JSON response
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		log.Printf("Error encoding response: %v", err)
+		Errorf("Error encoding response: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("Created room with code: %s", roomCode)
+	Infof("Created room with code: %s", roomCode)
 }
 
 // enableCORS adds CORS headers to the response
@@ -126,6 +125,9 @@ func enableCORS(w http.ResponseWriter, r *http.Request) {
 // corsMiddleware wraps handlers with CORS support
 func corsMiddleware(handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Log incoming HTTP request (method, path, client address)
+		Infof("Incoming request: %s %s from %s", r.Method, r.URL.Path, r.RemoteAddr)
+
 		enableCORS(w, r)
 		if r.Method == "OPTIONS" {
 			return
@@ -154,7 +156,7 @@ func broadcastToRoom(roomCode string, message []byte, sender *websocket.Conn) {
 		}
 
 		if err := conn.WriteMessage(websocket.TextMessage, message); err != nil {
-			log.Printf("Error broadcasting to client: %v", err)
+			Errorf("Error broadcasting to client: %v", err)
 			// Remove disconnected client
 			delete(room.Connections, conn)
 			conn.Close()
@@ -176,7 +178,7 @@ func removeConnectionFromRoom(roomCode string, conn *websocket.Conn) {
 	defer room.Mutex.Unlock()
 
 	delete(room.Connections, conn)
-	log.Printf("Client disconnected from room %s. Remaining connections: %d", roomCode, len(room.Connections))
+	Infof("Client disconnected from room %s. Remaining connections: %d", roomCode, len(room.Connections))
 }
 
 func homePage(w http.ResponseWriter, r *http.Request) {
@@ -196,14 +198,14 @@ func reader(conn *websocket.Conn, roomCode string) {
 		// read in a message
 		_, p, err := conn.ReadMessage()
 		if err != nil {
-			log.Printf("Error reading message: %v", err)
+			Errorf("Error reading message: %v", err)
 			return
 		}
 
 		// Parse the incoming message
 		var msg Message
 		if err := json.Unmarshal(p, &msg); err != nil {
-			log.Printf("Error parsing message: %v", err)
+			Warnf("Error parsing message: %v", err)
 			// If it's not JSON, treat it as plain text
 			msg = Message{
 				Type:    "text",
@@ -218,11 +220,11 @@ func reader(conn *websocket.Conn, roomCode string) {
 		// Convert back to JSON for broadcasting
 		messageBytes, err := json.Marshal(msg)
 		if err != nil {
-			log.Printf("Error marshaling message: %v", err)
+			Errorf("Error marshaling message: %v", err)
 			continue
 		}
 
-		log.Printf("Broadcasting message in room %s: %s", roomCode, msg.Content)
+		Infof("Broadcasting message in room %s: %s", roomCode, msg.Content)
 
 		// Broadcast to all clients in the room
 		broadcastToRoom(roomCode, messageBytes, conn)
@@ -232,12 +234,18 @@ func reader(conn *websocket.Conn, roomCode string) {
 func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 
+	// Log incoming WebSocket upgrade request
+	Infof("Incoming WebSocket request: %s %s from %s", r.Method, r.URL.Path, r.RemoteAddr)
+
 	// Get room code from query parameter
 	roomCode := r.URL.Query().Get("room")
 	if roomCode == "" {
 		http.Error(w, "Room code is required", http.StatusBadRequest)
 		return
 	}
+
+	// Log the target room for the WebSocket request
+	Infof("WebSocket request for room: %s from %s", roomCode, r.RemoteAddr)
 
 	// Check if room exists
 	mutex.RLock()
@@ -253,7 +261,7 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 	// connection
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println(err)
+		Error(err)
 		return
 	}
 
@@ -263,7 +271,7 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 	connectionCount := len(room.Connections)
 	room.Mutex.Unlock()
 
-	log.Printf("New User Connected to room %s. Total connections: %d", roomCode, connectionCount)
+	Infof("New User Connected to room %s. Total connections: %d", roomCode, connectionCount)
 
 	// Send welcome message to the new client
 	welcomeMsg := Message{
@@ -300,6 +308,8 @@ func main() {
 
 	setupRoutes()
 	fmt.Println("Server now listening on all interfaces at PORT:8080")
-	fmt.Println("Access from network: http://10.184.250.123:8080")
-	log.Fatal(http.ListenAndServe("0.0.0.0:8080", nil))
+
+	if err := http.ListenAndServe("0.0.0.0:8080", nil); err != nil {
+		Fatalf("Server failed: %v", err)
+	}
 }
