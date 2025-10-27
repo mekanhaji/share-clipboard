@@ -33,17 +33,19 @@ const HomePage = ({ onRoomJoin }: HomePageProps) => {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+    <main className="min-h-screen flex items-center justify-center bg-[var(--color-background)]">
+      <div className="p-8 rounded-lg shadow-lg w-full max-w-md bg-[var(--color-card)] text-[var(--color-card-foreground)]">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          <h1 className="text-3xl font-bold text-[var(--color-foreground)] mb-2">
             ShareClipBoard
           </h1>
-          <p className="text-gray-600">Share your clipboard across devices</p>
+          <p className="text-[var(--color-muted-foreground)]">
+            Share your clipboard across devices
+          </p>
         </div>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-[var(--color-destructive)] border border-[var(--color-destructive)] text-[var(--color-card-foreground)] px-4 py-3 rounded mb-4">
             {error}
           </div>
         )}
@@ -51,22 +53,24 @@ const HomePage = ({ onRoomJoin }: HomePageProps) => {
         <div className="space-y-6">
           {/* Create New Room */}
           <div className="text-center">
-            <h2 className="text-lg font-semibold text-gray-700 mb-3">
+            <h2 className="text-lg font-semibold text-[var(--color-foreground)] mb-3">
               Create New Room
             </h2>
             <button
               onClick={createNewRoom}
               disabled={isLoading}
-              className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+              className="w-full bg-[var(--color-primary)] hover:bg-[var(--primary-600)] disabled:opacity-50 text-[var(--color-primary-foreground)] font-medium py-3 px-4 rounded-lg transition-colors"
             >
               {isLoading ? "Creating..." : "Create New Room"}
             </button>
           </div>
 
           <div className="flex items-center">
-            <div className="flex-1 border-t border-gray-300"></div>
-            <span className="px-4 text-gray-500 text-sm">OR</span>
-            <div className="flex-1 border-t border-gray-300"></div>
+            <div className="flex-1 border-t border-[var(--border)]"></div>
+            <span className="px-4 text-[var(--color-muted-foreground)] text-sm">
+              OR
+            </span>
+            <div className="flex-1 border-t border-[var(--border)]"></div>
           </div>
 
           {/* Join Existing Room */}
@@ -87,13 +91,13 @@ const HomePage = ({ onRoomJoin }: HomePageProps) => {
                     setJoinRoomCode(value);
                   }
                 }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-xl font-mono tracking-widest"
+                className="w-full px-4 py-3 border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-[var(--primary-600)] focus:border-transparent text-center text-xl font-mono tracking-widest"
                 maxLength={6}
               />
               <button
                 onClick={joinExistingRoom}
                 disabled={joinRoomCode.length !== 6}
-                className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-300 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                className="w-full bg-[var(--color-accent)] hover:bg-[var(--accent-600)] disabled:opacity-50 text-[var(--color-accent-foreground)] font-medium py-3 px-4 rounded-lg transition-colors"
               >
                 Join Room
               </button>
