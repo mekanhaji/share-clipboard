@@ -9,14 +9,33 @@ export const generateHash = (text: string): string => {
 };
 
 export const createClipboardItem = async (text: string) => {
-  const hash = await crypto.subtle
-    .digest("SHA-1", new TextEncoder().encode(text))
-    .then((buf) => {
-      return Array.from(new Uint8Array(buf))
+  // Try using Web Crypto API (requires secure context). If it fails
+  // (insecure origin or not supported), fall back to a synchronous hash.
+  try {
+    if (
+      typeof crypto !== "undefined" &&
+      crypto.subtle &&
+      crypto.subtle.digest
+    ) {
+      const buf = await crypto.subtle.digest(
+        "SHA-1",
+        new TextEncoder().encode(text)
+      );
+      const hash = Array.from(new Uint8Array(buf))
         .map((b) => b.toString(16).padStart(2, "0"))
         .join("");
-    });
-  return { contain: text, hash };
+      return { contain: text, hash };
+    }
+  } catch (err) {
+    // WebCrypto may throw "The operation is insecure." on insecure origins
+    // or if the API is restricted. Fall back to a simple hash below.
+    // eslint-disable-next-line no-console
+    console.warn("WebCrypto digest failed, falling back to sync hash:", err);
+  }
+
+  // Fallback: use the existing synchronous generateHash function
+  const fallbackHash = generateHash(text);
+  return { contain: text, hash: fallbackHash };
 };
 
 export const fallbackCopy = (text: string) => {
