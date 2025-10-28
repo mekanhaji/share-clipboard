@@ -2,14 +2,18 @@ import React from "react";
 import { CloudOff, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const Header = ({
+interface HeaderProps {
+  roomCode: string;
+  isConnected: boolean;
+  clipboardError?: string | null;
+  onLeaveRoom: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({
   roomCode,
   isConnected,
   clipboardError,
   onLeaveRoom,
-  history,
-  clearHistory,
-  getBoard,
 }) => {
   return (
     <section className="rounded-lg shadow">

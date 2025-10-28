@@ -9,16 +9,8 @@ const ClipboardRoom = ({
   setIsConnected,
   onLeaveRoom,
 }: ClipboardRoomProps) => {
-  const {
-    getBoard,
-    history,
-    clearHistory,
-    messages,
-    sendMessage,
-    shareText,
-    clipboardError,
-    copy,
-  } = useClipboard(roomCode, setIsConnected);
+  const { history, messages, sendMessage, shareText, clipboardError, copy } =
+    useClipboard(roomCode, setIsConnected);
 
   return (
     <main className="flex flex-col gap-4 p-4 max-w-4xl mx-auto">
@@ -28,9 +20,6 @@ const ClipboardRoom = ({
         isConnected={isConnected}
         clipboardError={clipboardError}
         onLeaveRoom={onLeaveRoom}
-        history={history}
-        clearHistory={clearHistory}
-        getBoard={getBoard}
       />
 
       {/* Manual Text Share Section */}
